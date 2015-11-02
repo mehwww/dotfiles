@@ -1,0 +1,87 @@
+# open Visual Studio Code
+code () {
+  VSCODE_CWD="$PWD" open -n -b "com.microsoft.VSCode" --args $*
+}
+
+# command line proxy
+pxy () {
+  polipo_path=`which polipo`
+  polipo_pidfile=~/.polipo.pid
+  polipo_port=8123
+  shadowsocks_port=127.0.0.1:1080
+  if [ -z ${polipo_path} ]; then
+    echo "Polipo not installed"
+    exit 0
+  fi
+  case $1 in
+    on)
+      if [ -f ${polipo_pidfile} ]; then
+        echo "Polipo already running"
+      else
+        ${polipo_path} daemonise=true proxyPort=${polipo_port} socksParentProxy=${shadowsocks_port} pidFile=${polipo_pidfile} logFile=/dev/null
+        export http_proxy=http://127.0.0.1:${polipo_port}
+        export https_proxy=http://127.0.0.1:${polipo_port}
+        echo "Polipo listening socket on port 8123."
+      fi
+      ;;
+    off)
+      if [ -f ${polipo_pidfile} ]; then
+        kill `cat ~/.polipo.pid`
+        export http_proxy=
+        export https_proxy=
+        echo "Polipo stop running."
+      else
+        echo "Polipo not running yet."
+      fi
+      ;;
+    status|st)
+      if [ -f ${polipo_pidfile} ]; then
+        echo "on"
+      else
+        echo "off"
+      fi
+      ;;
+    set_env)
+      export http_proxy=http://127.0.0.1:${polipo_port}
+      export https_proxy=http://127.0.0.1:${polipo_port}
+      ;;
+    unset_env)
+      export http_proxy=
+      export https_proxy=
+      ;;
+    *)
+      ${polipo_path} daemonise=true proxyPort=${polipo_port} socksParentProxy=${shadowsocks_port} pidFile=${polipo_pidfile} logFile=/dev/null
+      http_proxy=http://127.0.0.1:${polipo_port} https_proxy=http://127.0.0.1:${polipo_port} $*
+      kill `cat ~/.polipo.pid`
+      ;;
+  esac
+}
+
+backup() { cp "$1"{,.bak}; }
+
+cls() { cd "$1"; ls; }
+
+mcd() { mkdir -p "$1"; cd "$1"; }
+
+md5check() { md5sum "$1" | grep "$2"; }
+
+xtract() {
+    if [ -f $1 ] ; then
+        case $1 in
+            *.tar.bz2)   tar xvjf $1     ;;
+            *.tar.gz)    tar xvzf $1     ;;
+            *.bz2)       bunzip2 $1     ;;
+            *.rar)       unrar e $1     ;;
+            *.gz)        gunzip $1      ;;
+            *.tar)       tar xvf $1      ;;
+            *.tbz2)      tar xvjf $1     ;;
+            *.tgz)       tar xvzf $1     ;;
+            *.zip)       unzip $1       ;;
+            *.Z)         uncompress $1  ;;
+            *.7z)        7z x $1        ;;
+            *)           echo "'$1' cannot be extracted via extract()" ;;
+        esac
+    else
+        echo "'$1' is not a valid file"
+    fi
+}

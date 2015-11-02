@@ -1,0 +1,13 @@
+alias l='ls -CF'
+alias ll='ls -alF'
+alias la='ls -A'
+alias cl='clear'
+alias rm='rm -i'
+alias du='du -h'
+alias tailf='tail -f'
+alias grep='grep --color=auto'
+
+alias stree='open -a SourceTree'
+
+export NODE_ENV="development"
+export PS1="⌨ [\[$(tput setaf 3)\]\W\[$(tput sgr0)\]] \u\$ "
